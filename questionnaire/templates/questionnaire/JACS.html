@@ -1,0 +1,24 @@
+{% extends "global/Page.html" %}
+{% load otree %}
+
+{% block title %}
+質問紙２
+{% endblock %}
+
+{% block content %}
+<p>以下の質問についてそれぞれお答えください</p>
+<hr>
+
+<style>
+    /* スマホでも選択肢を縦並びにする */
+    .form-check-inline {
+        display: block !important;
+        margin-bottom: 5px;
+    }
+</style>
+
+<form method="post">
+    {{ formfields }}
+    <button type="submit" class="otree-btn-next btn btn-primary">次へ</button>
+</form>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "global/Page.html" %}
+{% load otree %}
+
+{% block title %}
+課題
+{% endblock %}
+
+{% block content %}
+<p>次のスライダーを動かして、今の時間の流れがどのように感じたかを回答してください。</p>
+<p>0 = 非常に短く感じた　／　50 = 普通　／　100 = 非常に長く感じた</p>
+
+<div style="margin: 40px 0;">
+  <input type="range" name="time_vas" min="0" max="100" step="1" value="50"
+         oninput="document.getElementById('val').innerText = this.value">
+  <div>現在の値：<span id="val">50</span></div>
+</div>
+
+<button class="btn btn-primary">次へ</button>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "global/Page.html" %}
+{% load otree %}
+
+{% block title %}
+  終了
+{% endblock %}
+
+{% block content %}
+<h3>お疲れさまでした！</h3>
+<p>ここで次の課題に移る前に休憩を取っていただいても構いません。</p>
+<p>全画面表示を終了したい場合は「Esc」キーを押下してください。</p>
+<p>引き続き次の課題にご協力よろしくお願いいたします</p>
+
+{{ next_button }}
+{% endblock %}

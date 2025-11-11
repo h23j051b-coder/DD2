@@ -1,0 +1,128 @@
+{% extends "global/Page.html" %}
+{% load otree %}
+
+{% block title %}
+    選択課題（{{ delay }}）
+{% endblock %}
+
+{% block content %}
+
+<p><b>以下はあなたが1日目に作成したエピソードです。このエピソードを読み，もう一度情景を思い浮かべてから下記の問いに臨んでください。</b></p>
+
+<p><b>● 選択した目標</b><br>
+{{ eft_goal }}
+</p>
+
+<p><b>● 5W1H での記述</b><br>
+{{ eft_5w1h }}
+</p>
+
+<p><b>● 感情の記述</b><br>
+{{ eft_emotion }}
+</p>
+
+<hr>
+
+<p>以下のうち、あなたがより望ましいと思う方をそれぞれ選んでください。問いによって「今」や「明日」といった報酬獲得時点と「100円」といった報酬量の組み合わせが変化するため，注意して回答してください。</p>
+
+<style>
+/* === スマホでも整うレスポンシブ設定 === */
+
+/* テーブルの全体設定 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* 各行の間に余白を追加 */
+tr {
+    display: block;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #ddd;
+}
+
+/* 各セルを縦並びにする（スマホ時） */
+td {
+    display: block;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 0.3rem;
+}
+
+/* 「または」を中央寄せ＆少し余白をつける */
+td:nth-child(2) {
+    text-align: center;
+    font-weight: bold;
+    color: #555;
+}
+
+/* ラジオボタンとラベルの間に少し余白 */
+input[type="radio"] {
+    margin-right: 6px;
+}
+
+/* ボタンをスマホでも押しやすく */
+button {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.7rem;
+    font-size: 1rem;
+}
+
+/* --- デスクトップでは横並びを維持 --- */
+@media (min-width: 768px) {
+    tr {
+        display: table-row;
+        border: none;
+        margin-bottom: 0;
+    }
+    td {
+        display: table-cell;
+        width: auto;
+        margin-bottom: 0;
+    }
+}
+</style>
+
+<form id="choiceForm">
+    <table>
+        {% for amount in amounts %}
+        <tr>
+            <td>
+                <input type="radio" name="choice_{{ forloop.counter }}" value="immediate"> 今 {{ amount }}円もらう
+            <td>
+                <input type="radio" name="choice_{{ forloop.counter }}" value="delayed"> {{ delay }} に {{ delayed_reward }}円もらう
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <input type="hidden" name="choice_data" id="choice_data">
+    <button class="otree-btn-next btn btn-primary">次へ</button>
+</form>
+
+<script>
+document.querySelector('form').addEventListener('submit', function(e) {
+    const amounts = {{ amounts|json }};
+    const choices = [];
+    let missing = false;
+
+    for (let i = 1; i <= amounts.length; i++) {
+        const val = document.querySelector(`input[name="choice_${i}"]:checked`);
+        if (!val) {
+            missing = true;
+        }
+        choices.push(val ? val.value : null);
+    }
+
+    if (missing) {
+        alert('すべての選択肢を選んでから次へ進んでください。');
+        e.preventDefault();
+        return;
+    }
+
+    document.getElementById('choice_data').value = JSON.stringify({ amounts, choices });
+});
+</script>
+
+{% endblock %}

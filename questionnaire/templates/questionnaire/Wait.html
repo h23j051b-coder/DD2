@@ -1,0 +1,58 @@
+{% extends "global/Page.html" %}
+{% block content %}
+<div id="page1" style="text-align:center; margin-top:60px;">
+    <h3>時間知覚課題の説明</h3>
+    <p style="margin: 40px;">{{ instruction_text|safe }}</p>
+
+    <button id="fullscreen-btn" class="btn btn-primary" style="font-size:18px; padding:10px 20px;">
+        全画面表示にする
+    </button>
+</div>
+
+<div id="page2" style="display:none; text-align:center; padding:40px;">
+    <h2>しばらくお待ちください…</h2>
+    <p>この画面が自動的に進むまでお待ちください。</p>
+</div>
+
+<style>
+    .otree-timer {
+        display: none !important;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    const page1 = document.getElementById('page1');
+    const page2 = document.getElementById('page2');
+
+    fullscreenBtn.addEventListener('click', function() {
+        // フルスクリーンに切り替え
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+        } else if (document.documentElement.webkitRequestFullscreen) {
+            document.documentElement.webkitRequestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) {
+            document.documentElement.msRequestFullscreen();
+        }
+
+        // ボタンの状態変更
+        fullscreenBtn.disabled = true;
+        fullscreenBtn.textContent = "全画面モードに切り替えました。数秒後に課題が始まります...";
+
+        // 数秒後にpage2（待機画面）へ
+        setTimeout(() => {
+            page1.style.display = 'none';
+            page2.style.display = 'block';
+
+            // 一定時間経過後に自動的に次ページへ
+            setTimeout(() => {
+                document.querySelector('form').submit();
+            }, {{ wait_time_ms }});  // Pythonで渡したWAIT_TIMEをミリ秒に
+        }, 3000);  // 3秒後に切り替え
+    });
+});
+</script>
+{% endblock %}
+
+

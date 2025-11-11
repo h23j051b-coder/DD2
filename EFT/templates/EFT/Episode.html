@@ -1,0 +1,64 @@
+{% extends "global/Page.html" %}
+{% load otree %}
+
+{% block title %}エピソード作成{% endblock %}
+{% block content %}
+
+{% if group == "関連" %}
+<p><b>あなたは <span style="color:red;"> {{ delay }} 1万円を獲得する</span>ことが目標です。</b></p>
+<p>以下のリストから、そのための手段を一つ選択してください。</p>
+{% else %}
+<p><b><span style="color:red;"> {{ delay }} 達成できる目標</span>を以下のリストから一つ選択してください。</b></p>
+{% endif %}
+
+{{ formfield 'goal' }}
+
+<hr>
+
+
+<p><b>① その目標を達成するまでの自分をできる限り具体的に（5W1Hなど）記述してください。</b></p>
+{% if group == "関連" %}
+<p>記述例</p>
+<p>2か月後1万円を獲得することが目標：誕生日に1万円をもらう</p>
+<p>①2か月後に故郷の祖父母の家に車で行き，誕生日祝いとして1万円をもらう</p>
+{% else %}
+<p>記述例</p>
+<p>2か月後に達成できる目標：街を歩いていたら偶然好きな女優さんを見かける</p>
+<p>①2か月後に新潟駅周辺に買い物をしようと外出したとき，いつもは入らなかった有名店に立ち寄る</p>
+{% endif %}
+{{ formfield 'text_5w1h' }}
+
+<p><b>② 達成したときの喜びやその表現方法について想像して記述してください。</b></p>
+{% if group == "関連" %}
+<p>記述例</p>
+<p>2か月後に1万円を獲得することが目標：誕生日に1万円をもらう</p>
+<p>②祖父母に感謝を伝え，何を買おうかワクワクする</p>
+{% else %}
+<p>記述例</p>
+<p>2か月後に達成できる目標：街を歩いていたら偶然好きな女優さんを見かける<p>
+<p>②お店では女優さんに会えた喜びをかみしめ，後で友人とひっそり喜びを分かち合う</p>
+{% endif %}
+{{ formfield 'text_emotion' }}
+
+<hr>
+
+<p>以下の項目について、1〜6 の範囲で評価してください。</p>
+
+<style>
+    /* スマホでも選択肢を縦並びにする */
+    .form-check-inline {
+        display: block !important;
+        margin-bottom: 5px;
+    }
+</style>
+
+{{ formfield 'rating_valence' }}
+{{ formfield 'rating_importance' }}
+{{ formfield 'rating_arousal' }}
+{{ formfield 'rating_frequency' }}
+{{ formfield 'rating_vividness' }}
+
+
+{{ next_button }}
+
+{% endblock %}
