@@ -1,0 +1,68 @@
+{% extends "global/Page.html" %}
+{% load otree %}
+
+{% block title %}
+目標（または手段）の選択
+{% endblock %}
+
+{% block content %}
+<style>
+.delay-card {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 16px;
+    background: #fdfdfd;
+}
+.delay-title { font-weight: bold; margin-bottom: 8px; }
+.otree-radio-select { display:block !important; }
+.otree-radio-select label { display:block; padding:8px; margin-bottom:4px; border-radius:8px; border:1px solid #eee; background:#fafafa; }
+</style>
+
+<p>
+    {% if group == "関連" %}
+        <b>以下の遅延期間について、1万円を獲得するための手段をそれぞれ一つずつ選んでください。</b>
+    {% else %}
+        <b>以下の遅延期間について、あなたが達成できる目標をそれぞれ一つずつ選んでください。</b>
+    {% endif %}
+</p>
+
+<hr>
+
+<form method="post">
+
+  {% for item in goal_list %}
+  <div class="delay-card">
+      {% if group == "関連" %}
+          <div class="delay-title">{{ item.delay }} ― 1万円を獲得するための手段</div>
+      {% else %}
+          <div class="delay-title">{{ item.delay }} ― あなたが達成できる目標</div>
+      {% endif %}
+
+      {% if item.options %}
+        {% for opt in item.options %}
+          <label>
+            <input type="radio" name="goal_{{ item.idx }}" value="{{ opt }}" required>
+            {{ opt }}
+          </label>
+        {% endfor %}
+      {% else %}
+        <p><em>現在、この遅延に対する候補が設定されていません。</em></p>
+      {% endif %}
+  </div>
+{% endfor %}
+
+{{ next_button }} 
+</form>
+
+<style>
+label {
+    display: block;
+    margin-bottom: 8px;
+}
+input[type="radio"] {
+    margin-right: 6px;
+}
+</style>
+
+{% endblock %}

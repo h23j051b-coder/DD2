@@ -25,12 +25,12 @@ class C(BaseConstants):
     "SNSでアップした写真が偶然バズる",
     "テレビで好きな映画が放送されているのを発見する",
     "散歩中新しくて雰囲気が良いお店を発見する",
-    "いつも使うトイレが新しくなっている",
-    "ふと立ち寄った店が思い出の店だった",
+    "いつも使うトイレが新しくなっていることに気づく",
+    "ふと立ち寄った店が思い出の店であることを思い出す",
     "雨上がりの空にきれいな虹を見つける",
     "道端で猫がじゃれているのを見つける",
     "たっぷりお昼寝をする",
-    "昔の親友から嬉しい連絡が来る"
+    "昔の親友から嬉しい連絡をもらう"
     ]
 
 
@@ -79,12 +79,10 @@ class C(BaseConstants):
         [6, '非常に鮮明である']
     ] 
 
-
 class Subsession(BaseSubsession):
     def creating_session(self):
+        import random
         for p in self.get_players():
-            import random
-
             # 群割付（参加者間）
             p.participant.vars['group_type'] = random.choice(["関連", "無関連"])
 
@@ -93,17 +91,39 @@ class Subsession(BaseSubsession):
             random.shuffle(delays)
             p.participant.vars['delay_order'] = delays
 
+            # episode_goals を初期化
+            p.participant.vars['episode_goals'] = []
+
+            # どの候補リストを使うか
+            pool = C.GOALS_RELATED if p.participant.vars['group_type'] == "関連" else C.GOALS_UNRELATED
+
+            # 各遅延ごとに候補を割り当てる
+            for delay in delays:
+                # ------------ 重要点！！ ------------        
+                k = min(10, len(pool))
+                choices = pool[:k] 
+                # ------------------------------------
+
+                p.participant.vars['episode_goals'].append({
+                    'delay': delay,
+                    'related_list': choices,  # 表示する選択肢（文字列リスト）
+                    'goal': None,
+                })
+
+
 
 class Group(BaseGroup):
     pass
 
-
 class Player(BasePlayer):
-    goal = models.StringField(
-        choices=[],
-        label="",
-        widget=widgets.RadioSelect
-    )
+    goal_1 = models.StringField()
+    goal_2 = models.StringField()
+    goal_3 = models.StringField()
+    goal_4 = models.StringField()
+    goal_5 = models.StringField()
+    goal_6 = models.StringField()
+    goal_7 = models.StringField()
+
 
     text_5w1h = models.LongStringField(label="")
     text_5w1h_len = models.IntegerField(initial=0)

@@ -10,7 +10,11 @@
 <p><b>以下はあなたが1日目に作成したエピソードです。このエピソードを読み，もう一度情景を思い浮かべてから下記の問いに臨んでください。</b></p>
 
 <p><b>● 選択した目標</b><br>
-{{ eft_goal }}
+{% if group == "関連" %}
+    {{ delay }} に {{ eft_goal }} を達成して <b>{{ delayed_reward_str }}円</b>を獲得する
+{% else %}
+    あなたは {{ delay }} に <b>{{ eft_goal }}</b> という目標を達成できる
+{% endif %}
 </p>
 
 <p><b>● 5W1H での記述</b><br>
@@ -23,46 +27,59 @@
 
 <hr>
 
-<p>以下のうち、あなたがより望ましいと思う方をそれぞれ選んでください。問いによって「今」や「明日」といった報酬獲得時点と「100円」といった報酬量の組み合わせが変化するため，注意して回答してください。</p>
+<p>
+以下のうち、あなたがより望ましいと思う方をそれぞれ選んでください。
+問いによって「今」や「明日」といった報酬獲得時点と「100円」といった報酬量の組み合わせが変化するため，注意して回答してください。
+</p>
 
 <style>
-/* === スマホでも整うレスポンシブ設定 === */
-
-/* テーブルの全体設定 */
-table {
-    width: 100%;
-    border-collapse: collapse;
+/* ===== カード風選択肢 ===== */
+.option-card {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 16px;
+    background: #fdfdfd;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
 }
 
-/* 各行の間に余白を追加 */
-tr {
-    display: block;
-    margin-bottom: 1rem;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #ddd;
+.option-left,
+.option-right {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 120px;
 }
 
-/* 各セルを縦並びにする（スマホ時） */
-td {
-    display: block;
-    width: 100%;
-    text-align: left;
-    margin-bottom: 0.3rem;
-}
-
-/* 「または」を中央寄せ＆少し余白をつける */
-td:nth-child(2) {
-    text-align: center;
+.option-or {
+    padding: 0 12px;
     font-weight: bold;
-    color: #555;
+    white-space: nowrap;
+    text-align: center;
 }
 
-/* ラジオボタンとラベルの間に少し余白 */
-input[type="radio"] {
-    margin-right: 6px;
+.option-card label {
+    display: block;
+    width: 100%;
+    cursor: pointer;
+    margin-bottom: 8px;
 }
 
-/* ボタンをスマホでも押しやすく */
+.option-card input[type="radio"] {
+    margin-right: 8px;
+}
+
+.option-card:not(:last-child)::after {
+    content: "";
+    display: block;
+    height: 1px;
+    background-color: #ccc;
+    margin-top: 12px;
+}
+
 button {
     width: 100%;
     margin-top: 1rem;
@@ -70,33 +87,39 @@ button {
     font-size: 1rem;
 }
 
-/* --- デスクトップでは横並びを維持 --- */
 @media (min-width: 768px) {
-    tr {
-        display: table-row;
-        border: none;
+    .option-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+    }
+    .option-card label {
         margin-bottom: 0;
     }
-    td {
-        display: table-cell;
-        width: auto;
-        margin-bottom: 0;
+    .option-card:not(:last-child)::after {
+        display: none;
     }
 }
 </style>
 
 <form id="choiceForm">
-    <table>
-        {% for amount in amounts %}
-        <tr>
-            <td>
-                <input type="radio" name="choice_{{ forloop.counter }}" value="immediate"> 今 {{ amount }}円もらう
-            <td>
-                <input type="radio" name="choice_{{ forloop.counter }}" value="delayed"> {{ delay }} に {{ delayed_reward }}円もらう
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+    {% for amount, amount_str in amount_pairs %}
+    <div class="option-card">
+        <label class="option-left">
+            <input type="radio" name="choice_{{ forloop.counter }}" value="immediate">
+            今 {{ amount_str }}円もらう
+        </label>
+
+        <span class="option-or">または</span>
+
+        <label class="option-right">
+            <input type="radio" name="choice_{{ forloop.counter }}" value="delayed">
+            {{ delay }} に {{ delayed_reward_str }}円もらう
+        </label>
+    </div>
+    {% endfor %}
+
     <input type="hidden" name="choice_data" id="choice_data">
     <button class="otree-btn-next btn btn-primary">次へ</button>
 </form>

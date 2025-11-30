@@ -1,33 +1,36 @@
 from otree.api import *
-import numpy as np
 import random
 
 class C(BaseConstants):
     NAME_IN_URL = 'delay_discount'
     PLAYERS_PER_GROUP = None
     NUM_ROUNDS = 7  # 遅延条件の数
-    AMOUNTS = ['100', '250', '500', '750', '1,000', '1,500', '2,000', '2,500', '3,000', '3,500', '4,000', '4,500', '5,000', '5500', '6,000', '6,500', '7,000', '7,500', '8,000', '8,500', '9,000', '9,250', '9,500', '9,750', '9,900', '10,000']  # 即時報酬候補
-    DELAYS = ['明日', '明後日', '1週間後', '2週間後', '1か月後', '6か月後', '2年後']  # 遅延日数
-    DELAYED_REWARD = '10,000'  # 遅延報酬
+    AMOUNTS = [100, 250, 500, 750, 1000, 1500, 2000, 2500, 3000, 3500,
+           4000, 4500, 5000, 5500, 6000, 6500, 7000, 7500, 8000,
+           8500, 9000, 9250, 9500, 9750, 9900, 10000]
+    DELAYS = ['明日', '明後日', '1週間後', '2週間後', '1か月後', '6か月後', '2年後']
+    DELAYED_REWARD = 10000
+
 
 class Subsession(BaseSubsession):
     def creating_session(self):
         for p in self.get_players():
-            # choices用の入れ物を初期化（asc/desc両方）
+            # choices 用の入れ物を初期化
             p.participant.vars.setdefault('choices', {'asc': {}, 'desc': {}})
 
-            # 遅延条件をランダム順で1回ずつ割り当て
+            # 遅延条件ランダム
             if 'page_order' not in p.participant.vars:
                 p.participant.vars['page_order'] = random.sample(C.DELAYS, len(C.DELAYS))
 
-            # 今のラウンドの遅延条件を設定
             p.delay = p.participant.vars['page_order'][p.round_number - 1]
 
-            # 金額提示順（昇順 or 降順）をランダムに設定
+            # ラウンドごとに order_type をランダムで決定
             p.order_type = random.choice(['asc', 'desc'])
+
 
 class Group(BaseGroup):
     pass
+
 
 class Player(BasePlayer):
     delay = models.StringField()
@@ -38,53 +41,84 @@ class Player(BasePlayer):
     finish_time = models.StringField()
 
     def set_indifference_point(self):
-        """昇順・降順ごとの等価点を算出"""
         import json
+
         data = json.loads(self.choice_data)
         amounts = data['amounts']
-        choices = data['choices']  # 'immediate' or 'delayed' のリスト
+        choices = data['choices']  # "immediate" or "delayed"
 
-        ip = None
-        if self.order_type == 'asc':
-            for i in range(1, len(choices)):
-                if choices[i-1] == 'immediate' and choices[i] == 'delayed':
-                    ip = (amounts[i-1] + amounts[i]) / 2
-                    break
+        DEBUG = False
+
+        if DEBUG:
+            print("DEBUG set_indifference_point")
+            print("amounts:", amounts)
+            print("choices:", choices)
+            print("order_type:", getattr(self, "order_type", None))
+
+        # 特殊ケース：全部 delayed / 全部 immediate
+        if all(c == 'delayed' for c in choices):
+            ip = max(amounts)
+        elif all(c == 'immediate' for c in choices):
+            ip = min(amounts)
         else:
-            for i in range(1, len(choices)):
-                if choices[i-1] == 'delayed' and choices[i] == 'immediate':
-                    ip = (amounts[i-1] + amounts[i]) / 2
-                    break
+            ascending = amounts[0] < amounts[-1]
 
-        if ip is None:
-            if all(c == 'immediate' for c in choices):
-                ip = min(amounts)
+            if ascending:
+                try:
+                    first_immediate_idx = choices.index("immediate")
+                except ValueError:
+                    ip = min(amounts)
+                else:
+                    if first_immediate_idx == 0:
+                        ip = min(amounts)
+                    else:
+                        prev_amt = amounts[first_immediate_idx - 1]
+                        curr_amt = amounts[first_immediate_idx]
+                        ip = (prev_amt + curr_amt) / 2.0
+
             else:
-                ip = max(amounts)
+                last_immediate_idx = None
+                for i in range(len(choices)-1, -1, -1):
+                    if choices[i] == "immediate":
+                        last_immediate_idx = i
+                        break
+
+                if last_immediate_idx is None:
+                    ip = max(amounts)
+                else:
+                    if last_immediate_idx == len(amounts) - 1:
+                        ip = min(amounts)
+                    else:
+                        next_amt = amounts[last_immediate_idx + 1]
+                        curr_amt = amounts[last_immediate_idx]
+                        ip = (curr_amt + next_amt) / 2.0
 
         self.indifference_point = ip
         self.participant.vars['choices'][self.order_type][self.delay] = ip
 
+        if DEBUG:
+            print("calculated ip:", ip)
+
+
+    # ==========================
+    #   AUC 計算（numpy不使用）
+    # ==========================
     def set_auc(self):
-        """昇順・降順ごとにAUCを算出（全ラウンド終了時に呼び出す）"""
-        delay_to_days = {
-            '明日': 1, '明後日': 2, '1週間後': 7, '2週間後': 14,
-            '1か月後': 30, '6か月後': 180, '2年後': 730,
-        }
+        ips = [p.indifference_point for p in self.in_all_rounds()]  # 7つの IP
 
-        auc_results = {}
-        for order in ['asc', 'desc']:
-            delay_ip = self.participant.vars['choices'][order]
-            if not delay_ip:
-                continue
+        max_val = C.DELAYED_REWARD  # 10000
+        normalized_ips = [ip / max_val for ip in ips]
 
-            # 日数順にソート
-            sorted_items = sorted(delay_ip.items(), key=lambda x: delay_to_days[x[0]])
-            delays, ips = zip(*sorted_items)
-            x = np.array([delay_to_days[d] for d in delays], dtype=float)
-            x /= np.max(x)
-            y = np.array(ips, dtype=float) / C.DELAYED_REWARD
-            auc_results[order] = np.trapz(y, x)
+        n = len(ips)
+        normalized_delays = [i / (n - 1) for i in range(n)]
 
-        # 平均AUCを保存
-        self.auc = np.nanmean(list(auc_results.values()))
+        auc = 0
+        for i in range(n - 1):
+            auc += (normalized_ips[i] + normalized_ips[i + 1]) * (normalized_delays[i + 1] - normalized_delays[i]) / 2
+
+        self.auc = auc
+
+
+    def set_scores(self):
+        """必要ならここに追加処理を書く。今は何もしない。"""
+        pass

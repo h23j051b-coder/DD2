@@ -8,6 +8,9 @@ from datetime import datetime, timezone
 class Intro(Page):
     template_name = 'DD_task2/Intro.html'
 
+    def is_displayed(self):
+        return self.round_number == 1
+
 class DelayPage(Page):
     form_model = 'player'
     form_fields = ['choice_data']
@@ -18,7 +21,7 @@ class DelayPage(Page):
         # participant.vars に未保存なら JSON から読み込む
         if not eft_data:
             label = self.participant.label
-            save_dir = os.path.join("C:/path/to/save", "eft_data")  # Day1 と同じ保存先
+            save_dir = os.path.join("C:/path/to/save", "eft_data")
             filename = os.path.join(save_dir, f"{label}.json")
 
             if os.path.exists(filename):
@@ -29,10 +32,8 @@ class DelayPage(Page):
 
             self.participant.vars['eft_data'] = eft_data
 
-        # 現在ラウンドの遅延条件
         current_delay = self.player.delay
 
-        # DD_task2のラウンド遅延条件に対応するEFT回答を検索
         eft = next((e for e in eft_data if e.get('delay') == current_delay), {})
 
         # 金額提示順
@@ -41,10 +42,18 @@ class DelayPage(Page):
         else:
             amounts = list(reversed(C.AMOUNTS))
 
+        # ★ intcomma を使わないため、ここでカンマ付き文字列を作る
+        amounts_str = [f"{a:,}" for a in amounts]
+
+        # ★ zip 済みリストを作ってテンプレートに渡す
+        amount_pairs = list(zip(amounts, amounts_str))
+
         return dict(
             delay=current_delay,
             delayed_reward=C.DELAYED_REWARD,
-            amounts=amounts,
+            delayed_reward_str=f"{C.DELAYED_REWARD:,}",
+            amount_pairs=amount_pairs,  # ← テンプレートはこれだけ使う
+            amounts=amounts,   # ← コレを追加する
             eft_goal=eft.get('goal'),
             eft_5w1h=eft.get('text_5w1h'),
             eft_emotion=eft.get('text_emotion'),
