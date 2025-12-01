@@ -118,7 +118,8 @@ class Episode(Page):
             delay=current_delay,
             goal=current_goal,
             text_5w1h=self.player.text_5w1h,
-            text_emotion=self.player.text_emotion
+            text_emotion=self.player.text_emotion,
+            group = self.participant.vars.get('group_type', None)
         ))
 
         # JSON 保存

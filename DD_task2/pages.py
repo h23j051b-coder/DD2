@@ -2,7 +2,6 @@ from otree.api import *
 from .models import C
 import json
 import os
-import time
 from datetime import datetime, timezone
 
 
@@ -18,7 +17,6 @@ class DelayPage(Page):
     form_fields = ['choice_data']
 
     def vars_for_template(self):
-
         eft_data = self.participant.vars.get('eft_data', [])
 
         # participant.vars に未保存なら JSON から読み込む
@@ -37,6 +35,7 @@ class DelayPage(Page):
 
         current_delay = self.player.delay
 
+        # そのラウンドの EFT データを取得
         eft = next(
             (e for e in eft_data if e.get('delay') == current_delay),
             {}
@@ -48,24 +47,23 @@ class DelayPage(Page):
         else:
             amounts = list(reversed(C.AMOUNTS))
 
-        # ★ intcomma を使わないため、ここでカンマ付き文字列を作る
+        # カンマ付き文字列作成
         amounts_str = [f"{a:,}" for a in amounts]
-
-        # ★ zip 済みリストを作ってテンプレートに渡す
         amount_pairs = list(zip(amounts, amounts_str))
 
-        group = self.participant.vars.get('group_type')
+        # group は EFT データから取得
+        group = eft.get('group')
 
         return dict(
             delay=current_delay,
             delayed_reward=C.DELAYED_REWARD,
             delayed_reward_str=f"{C.DELAYED_REWARD:,}",
-            amount_pairs=amount_pairs,   # テンプレートで使用
-            amounts=amounts,             # 必要なら使用
+            amount_pairs=amount_pairs,
+            amounts=amounts,
             eft_goal=eft.get('goal'),
             eft_5w1h=eft.get('text_5w1h'),
             eft_emotion=eft.get('text_emotion'),
-            group = group
+            group=group
         )
 
     def before_next_page(self, timeout_happened=None):
