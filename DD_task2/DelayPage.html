@@ -114,18 +114,14 @@ button {
 </form>
 
 <script>
-// デバッグ用（必要なら有効に）
-// console.log("amounts raw:", {{ amounts|json }});
-
 document.getElementById('submitBtn').addEventListener('click', function() {
-    // JSON経由で安全に受け取る（escapeを気にするなら |escapejs を検討）
-    const amounts = JSON.parse('{{ amounts|json }}');
-    const choices = [];
-    let missing = false;
 
+    const amounts = JSON.parse('{{ amounts|safe }}');
+    const choices = [];
+
+    let missing = false;
     for (let i = 1; i <= amounts.length; i++) {
-        const selector = `input[name="choice_${i}"]:checked`;
-        const el = document.querySelector(selector);
+        const el = document.querySelector(`input[name="choice_${i}"]:checked`);
         if (!el) {
             missing = true;
             break;
@@ -134,15 +130,14 @@ document.getElementById('submitBtn').addEventListener('click', function() {
     }
 
     if (missing) {
-        // ユーザー向けメッセージ（日本語）
         alert('すべての選択肢を選んでから次へ進んでください。');
         return;
     }
 
-    // hidden に JSON を入れて送信
-    document.getElementById('choice_data').value = JSON.stringify({ amounts, choices });
-
-    // サブミット
+    document.getElementById('choice_data').value = JSON.stringify({
+        amounts: amounts,
+        choices: choices
+    });
     document.getElementById('choiceForm').submit();
 });
 </script>
