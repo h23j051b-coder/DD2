@@ -1,7 +1,9 @@
 from otree.api import *
+from .models import C   # ← これが必要！！
 import json
 import os
 from datetime import datetime, timezone
+
 
 class Intro(Page):
     def is_displayed(self):
