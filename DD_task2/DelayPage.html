@@ -7,65 +7,115 @@
 
 {% block content %}
 
+<p><b>以下はあなたが1日目に作成したエピソードです。このエピソードを読み，もう一度情景を思い浮かべてから下記の問いに臨んでください。</b></p>
+
+<p><b>● 選択した目標</b><br>
+{% if group == "関連" %}
+    {{ delay }} に {{ eft_goal }} を達成して <b>{{ delayed_reward_str }}円</b>を獲得する
+{% else %}
+    あなたは {{ delay }} に <b>{{ eft_goal }}</b> という目標を達成できる
+{% endif %}
+</p>
+
+<p><b>● 5W1H での記述</b><br>
+{{ eft_5w1h }}
+</p>
+
+<p><b>● 感情の記述</b><br>
+{{ eft_emotion }}
+</p>
+
+<hr>
+
+<p>
+以下のうち、あなたがより望ましいと思う方をそれぞれ選んでください。
+問いによって「今」や「明日」といった報酬獲得時点と「100円」といった報酬量の組み合わせが変化するため，注意して回答してください。
+</p>
+
 <style>
-.delay-card {
+/* ===== カード風選択肢 ===== */
+.option-card {
     border: 1px solid #ddd;
     border-radius: 12px;
     padding: 12px;
     margin-bottom: 16px;
     background: #fdfdfd;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
 }
-.delay-title { font-weight: bold; margin-bottom: 8px; }
-.choice-row { display: flex; justify-content: space-between; margin-top: 6px; }
-.choice-label { display: flex; align-items: center; }
-
-.otree-btn-next, .otree-btn-submit {
-    display: none !important;
+.option-left, .option-right {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 120px;
+}
+.option-or {
+    padding: 0 12px;
+    font-weight: bold;
+    white-space: nowrap;
+    text-align: center;
+}
+.option-card label {
+    display: block;
+    width: 100%;
+    cursor: pointer;
+    margin-bottom: 8px;
+}
+.option-card input[type="radio"] {
+    margin-right: 8px;
+}
+.option-card:not(:last-child)::after {
+    content: "";
+    display: block;
+    height: 1px;
+    background-color: #ccc;
+    margin-top: 12px;
+}
+button {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.7rem;
+    font-size: 1rem;
+}
+@media (min-width: 768px) {
+    .option-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+    }
+    .option-card label {
+        margin-bottom: 0;
+    }
+    .option-card:not(:last-child)::after {
+        display: none;
+    }
 }
 </style>
 
-<p>
-以下はあなたが選択する問題です。<br>
-全ての項目に回答し、最後に「回答を確定して次へ」を押してください。
-</p>
-
 <form id="choiceForm" method="post">
+{% for amount, amount_str in amount_pairs %}
+    <div class="option-card">
+        <label class="option-left">
+            <input type="radio" name="choice_{{ forloop.counter }}" value="immediate">
+             今 {{ amount_str }}円もらう
+        </label>
+        <span class="option-or">または</span>
+        <label class="option-right">
+            <input type="radio" name="choice_{{ forloop.counter }}" value="delayed">
+             {{ delay }} に {{ delayed_reward_str }}円もらう
+        </label>
+    </div>
+{% endfor %}
+
     <input type="hidden" name="choice_data" id="choice_data">
-
-    {% for amount in amounts %}
-        <div class="delay-card">
-            <div class="delay-title">
-                {{ forloop.counter }}. 
-                <span style="color:#333">
-                    今すぐ {{ amount }}円  ＜または＞  {{ delay }}後に 10,000円
-                </span>
-            </div>
-
-            <div class="choice-row">
-                <label class="choice-label">
-                    <input type="radio" name="choice_{{ forloop.counter }}" value="immediate">
-                    今すぐ {{ amount }}円
-                </label>
-
-                <label class="choice-label">
-                    <input type="radio" name="choice_{{ forloop.counter }}" value="delay">
-                    {{ delay }}後に 10,000円
-                </label>
-            </div>
-        </div>
-    {% endfor %}
-
-    <button type="button"
-        onclick="submitChoices()"
-        class="btn btn-primary"
-        style="width:100%;font-size:1.1em;padding:12px;margin-top:12px">
-        回答を確定して次へ
-    </button>
-
+    <button class="otree-btn-next btn btn-primary">次へ</button>
 </form>
 
 <script>
-function submitChoices(){
+document.querySelector('#choiceForm').addEventListener('submit', function(e) {
     const amounts = {{ amounts|json }};
     const choices = [];
     let missing = false;
@@ -80,14 +130,12 @@ function submitChoices(){
 
     if (missing) {
         alert('すべての選択肢を選んでから次へ進んでください。');
+        e.preventDefault();
         return;
     }
 
-    document.getElementById('choice_data').value =
-        JSON.stringify({ amounts, choices });
-
-    document.getElementById('choiceForm').submit();
-}
+    document.getElementById('choice_data').value = JSON.stringify({ amounts, choices });
+});
 </script>
 
 {% endblock %}
