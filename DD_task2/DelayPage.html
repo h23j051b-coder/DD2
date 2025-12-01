@@ -30,7 +30,6 @@
 </p>
 
 <form id="choiceForm" method="post">
-    {% csrf_token %}
     <input type="hidden" name="choice_data" id="choice_data">
 
     {% for num, amount in amounts %}
