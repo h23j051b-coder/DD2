@@ -77,18 +77,18 @@ class DelayPage(Page):
 
 class EndPage(Page):
 
-        def is_displayed(self):
-            return self.round_number == C.NUM_ROUNDS
+    def is_displayed(self):
+        return self.round_number == C.NUM_ROUNDS
 
-        def vars_for_template(self):
-            return dict(
-                message="データを保存しました。",
-                auc=self.player.auc,
-            )
+    def vars_for_template(self):
+        return dict(
+            message="データを保存しました。",
+            auc=self.player.auc,
+        )
 
-        def before_next_page(self, timeout_happened=None):
-            self.player.set_scores()
-            self.player.finish_time = datetime.now(timezone.utc).isoformat()
+    def before_next_page(self, timeout_happened=None):
+        self.player.set_scores()
+        self.player.finish_time = datetime.now(timezone.utc).isoformat()
 
 
 page_sequence = [Intro, DelayPage, EndPage]
