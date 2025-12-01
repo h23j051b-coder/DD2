@@ -65,6 +65,11 @@ class DelayPage(Page):
         if self.round_number == C.NUM_ROUNDS:
             self.player.set_auc()
 
+class BreakPage(Page):
+    template_name = 'DD_task2/Break.html'
+
+    def is_displayed(self):
+        return self.round_number == 4
 
 class EndPage(Page):
     def is_displayed(self):
@@ -81,4 +86,15 @@ class EndPage(Page):
         self.player.finish_time = datetime.now(timezone.utc).isoformat()
 
 
-page_sequence = [Intro, DelayPage, EndPage]
+page_sequence = [
+    Intro,
+    DelayPage,
+    DelayPage,
+    DelayPage,
+    DelayPage,
+    BreakPage,  # ← ここに追加
+    DelayPage,
+    DelayPage,
+    DelayPage,
+    EndPage
+]

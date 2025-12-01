@@ -1,0 +1,14 @@
+{% extends "global/Page.html" %}
+{% load otree %}
+
+{% block title %}
+休憩
+{% endblock %}
+
+{% block content %}
+    <p>ここで少し休憩できます。できる限りブラウザは閉じないようにご協力よろしくお願いします。</p>
+    <p>準備ができたら「次へ」を押してください。</p>
+
+    {% next_button %}
+{% endblock %}
+
