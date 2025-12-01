@@ -63,6 +63,7 @@ class DelayPage(Page):
             eft_goal=eft.get('goal'),
             eft_5w1h=eft.get('text_5w1h'),
             eft_emotion=eft.get('text_emotion'),
+            group = self.participant.vars.get('group_type', None)
         )
 
     def before_next_page(self, timeout_happened=None):
