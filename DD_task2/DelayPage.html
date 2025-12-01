@@ -32,7 +32,7 @@
 <form id="choiceForm" method="post">
     <input type="hidden" name="choice_data" id="choice_data">
 
-    {% for num, amount in amounts %}
+    {% for amount in amounts %}
         <div class="delay-card">
             <div class="delay-title">
                 {{ forloop.counter }}. 
