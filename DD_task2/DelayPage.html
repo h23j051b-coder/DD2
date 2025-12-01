@@ -91,7 +91,6 @@ button {
 
 <!-- method="post" と CSRF を入れる -->
 <form id="choiceForm" method="post">
-    {% csrf_token %}
     <input type="hidden" name="choice_data" id="choice_data">
 
     <!-- amount_pairs は (amount, formatted_str) のリスト -->
