@@ -45,10 +45,11 @@ class DelayPage(Page):
             delay=current_delay,
             delayed_reward=C.DELAYED_REWARD,
             delayed_reward_str=f"{C.DELAYED_REWARD:,}",
-            amount_pairs=amount_pairs,
+            amount_pairs=list(zip(amounts, [f"{a:,}" for a in amounts])),
             eft_goal=eft.get('goal'),
             eft_5w1h=eft.get('text_5w1h'),
             eft_emotion=eft.get('text_emotion'),
+             amounts=amounts,
         )
 
     def before_next_page(self, timeout_happened=None):
