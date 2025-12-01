@@ -47,3 +47,45 @@ class DelayPage(Page):
             amounts = C.AMOUNTS
         else:
             amounts = list(reversed(C.AMOUNTS))
+
+        # ★ intcomma を使わないため、ここでカンマ付き文字列を作る
+        amounts_str = [f"{a:,}" for a in amounts]
+
+        # ★ zip 済みリストを作ってテンプレートに渡す
+        amount_pairs = list(zip(amounts, amounts_str))
+
+        return dict(
+            delay=current_delay,
+            delayed_reward=C.DELAYED_REWARD,
+            delayed_reward_str=f"{C.DELAYED_REWARD:,}",
+            amount_pairs=amount_pairs,   # テンプレートで使用
+            amounts=amounts,             # 必要なら使用
+            eft_goal=eft.get('goal'),
+            eft_5w1h=eft.get('text_5w1h'),
+            eft_emotion=eft.get('text_emotion'),
+        )
+
+    def before_next_page(self, timeout_happened=None):
+        self.player.set_indifference_point()
+
+        if self.round_number == C.NUM_ROUNDS:
+            self.player.set_auc()
+
+
+class EndPage(Page):
+
+        def is_displayed(self):
+            return self.round_number == C.NUM_ROUNDS
+
+        def vars_for_template(self):
+            return dict(
+                message="データを保存しました。",
+                auc=self.player.auc,
+            )
+
+        def before_next_page(self, timeout_happened=None):
+            self.player.set_scores()
+            self.player.finish_time = datetime.now(timezone.utc).isoformat()
+
+
+page_sequence = [Intro, DelayPage, EndPage]
