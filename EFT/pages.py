@@ -14,27 +14,7 @@ class Intro(Page):
         return self.session.config['name'] == 'day1' and self.round_number == 1
 
     def before_next_page(self):
-        import random
-
-        if 'episode_goals' not in self.participant.vars:
-            self.participant.vars['episode_goals'] = []
-
-            for i in range(C.NUM_ROUNDS):
-
-                if self.participant.vars['group_type'] == "関連":
-                    lst = C.GOALS_RELATED.copy()
-                else:
-                    lst = C.GOALS_UNRELATED.copy()
-
-                random.shuffle(lst)
-
-                self.participant.vars['episode_goals'].append(dict(
-                    goal=None,
-                    delay=self.participant.vars['delay_order'][i],
-                    related_list=lst
-                ))
-
-
+        pass  # 何もしない
 
 class Select(Page):
     form_model = 'player'

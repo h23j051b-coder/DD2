@@ -82,11 +82,23 @@ class C(BaseConstants):
 class Subsession(BaseSubsession):
     def creating_session(self):
         import random
-        for p in self.get_players():
-            # 群割付（参加者間）
-            p.participant.vars['group_type'] = random.choice(["関連", "無関連"])
 
-            # 遅延期（参加者内ランダム順）
+        players = self.get_players()
+
+        # 現在の参加者数に応じて、できるだけ均等に分ける
+        n = len(players)
+        half = n // 2
+
+        # 最初の half 人 → 「関連」
+        # 後半 → 「無関連」
+        # ただし毎セッション新しい順に割り振ることで均等化
+        assignments = ["関連"] * half + ["無関連"] * (n - half)
+        random.shuffle(assignments)
+
+        for p, a in zip(players, assignments):
+            p.participant.vars['group_type'] = a
+
+            # 遅延期（参加者ごとにランダム）
             delays = C.DELAYS.copy()
             random.shuffle(delays)
             p.participant.vars['delay_order'] = delays
@@ -94,22 +106,19 @@ class Subsession(BaseSubsession):
             # episode_goals を初期化
             p.participant.vars['episode_goals'] = []
 
-            # どの候補リストを使うか
-            pool = C.GOALS_RELATED if p.participant.vars['group_type'] == "関連" else C.GOALS_UNRELATED
+            # 群に応じて候補リストを選ぶ
+            pool = C.GOALS_RELATED if a == "関連" else C.GOALS_UNRELATED
 
-            # 各遅延ごとに候補を割り当てる
+            # 遅延ごとの候補を割り当てる
             for delay in delays:
-                # ------------ 重要点！！ ------------        
                 k = min(10, len(pool))
-                choices = pool[:k] 
-                # ------------------------------------
+                choices = pool[:k]
 
                 p.participant.vars['episode_goals'].append({
                     'delay': delay,
-                    'related_list': choices,  # 表示する選択肢（文字列リスト）
+                    'related_list': choices,
                     'goal': None,
                 })
-
 
 
 class Group(BaseGroup):
