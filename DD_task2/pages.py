@@ -54,6 +54,8 @@ class DelayPage(Page):
         # ★ zip 済みリストを作ってテンプレートに渡す
         amount_pairs = list(zip(amounts, amounts_str))
 
+        group = self.participant.vars.get('group_type')
+
         return dict(
             delay=current_delay,
             delayed_reward=C.DELAYED_REWARD,
@@ -63,7 +65,7 @@ class DelayPage(Page):
             eft_goal=eft.get('goal'),
             eft_5w1h=eft.get('text_5w1h'),
             eft_emotion=eft.get('text_emotion'),
-            group = self.participant.vars.get('group_type', None)
+            group = group
         )
 
     def before_next_page(self, timeout_happened=None):
