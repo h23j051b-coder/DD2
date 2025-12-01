@@ -2,7 +2,6 @@ from otree.api import *
 from .models import C
 import json
 import os
-import time
 from datetime import datetime, timezone
 
 class Intro(Page):
@@ -11,6 +10,7 @@ class Intro(Page):
     def is_displayed(self):
         return self.round_number == 1
 
+
 class DelayPage(Page):
     form_model = 'player'
     form_fields = ['choice_data']
@@ -18,7 +18,6 @@ class DelayPage(Page):
     def vars_for_template(self):
         eft_data = self.participant.vars.get('eft_data', [])
 
-        # participant.vars に未保存なら JSON から読み込む
         if not eft_data:
             label = self.participant.label
             save_dir = os.path.join("C:/path/to/save", "eft_data")
@@ -33,27 +32,22 @@ class DelayPage(Page):
             self.participant.vars['eft_data'] = eft_data
 
         current_delay = self.player.delay
-
         eft = next((e for e in eft_data if e.get('delay') == current_delay), {})
 
-        # 金額提示順
         if self.player.order_type == 'asc':
             amounts = C.AMOUNTS
         else:
             amounts = list(reversed(C.AMOUNTS))
 
-        # ★ intcomma を使わないため、ここでカンマ付き文字列を作る
         amounts_str = [f"{a:,}" for a in amounts]
-
-        # ★ zip 済みリストを作ってテンプレートに渡す
         amount_pairs = list(zip(amounts, amounts_str))
 
         return dict(
             delay=current_delay,
             delayed_reward=C.DELAYED_REWARD,
             delayed_reward_str=f"{C.DELAYED_REWARD:,}",
-            amount_pairs=amount_pairs,  # ← テンプレートはこれだけ使う
-            amounts=amounts,   # ← コレを追加する
+            amount_pairs=amount_pairs,
+            amounts=amounts,
             eft_goal=eft.get('goal'),
             eft_5w1h=eft.get('text_5w1h'),
             eft_emotion=eft.get('text_emotion'),
@@ -65,11 +59,13 @@ class DelayPage(Page):
         if self.round_number == C.NUM_ROUNDS:
             self.player.set_auc()
 
+
 class BreakPage(Page):
     template_name = 'DD_task2/Break.html'
 
     def is_displayed(self):
         return self.round_number == 4
+
 
 class EndPage(Page):
     def is_displayed(self):
@@ -86,15 +82,14 @@ class EndPage(Page):
         self.player.finish_time = datetime.now(timezone.utc).isoformat()
 
 
-page_sequence = [
-    Intro,
-    DelayPage,
-    DelayPage,
-    DelayPage,
-    DelayPage,
-    BreakPage,  # ← ここに追加
-    DelayPage,
-    DelayPage,
-    DelayPage,
-    EndPage
-]
+# 🔥 DelayPageのページを自動生成 + 途中で BreakPage 挿入
+page_sequence = [Intro]
+
+for i in range(C.NUM_ROUNDS):
+    page_sequence.append(DelayPage)
+
+    # ★ 4ページ目が終わったら休憩ページを表示
+    if i == 3:
+        page_sequence.append(BreakPage)
+
+page_sequence.append(EndPage)
