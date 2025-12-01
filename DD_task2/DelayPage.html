@@ -33,7 +33,7 @@
 </p>
 
 <style>
-/* ===== カード風選択肢 ===== */
+/* 元のスタイルを維持 */
 .option-card {
     border: 1px solid #ddd;
     border-radius: 12px;
@@ -81,13 +81,7 @@ button {
 }
 @media (min-width: 768px) {
     .option-card {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
         padding: 12px 16px;
-    }
-    .option-card label {
-        margin-bottom: 0;
     }
     .option-card:not(:last-child)::after {
         display: none;
@@ -95,46 +89,62 @@ button {
 }
 </style>
 
+<!-- method="post" と CSRF を入れる -->
 <form id="choiceForm" method="post">
-{% for amount, amount_str in amount_pairs %}
+    {% csrf_token %}
+    <input type="hidden" name="choice_data" id="choice_data">
+
+    <!-- amount_pairs は (amount, formatted_str) のリスト -->
+    {% for amount, amount_str in amount_pairs %}
     <div class="option-card">
         <label class="option-left">
             <input type="radio" name="choice_{{ forloop.counter }}" value="immediate">
-             今 {{ amount_str }}円もらう
+            今 {{ amount_str }}円もらう
         </label>
+
         <span class="option-or">または</span>
+
         <label class="option-right">
             <input type="radio" name="choice_{{ forloop.counter }}" value="delayed">
-             {{ delay }} に {{ delayed_reward_str }}円もらう
+            {{ delay }} に {{ delayed_reward_str }}円もらう
         </label>
     </div>
-{% endfor %}
+    {% endfor %}
 
-    <input type="hidden" name="choice_data" id="choice_data">
-    <button class="otree-btn-next btn btn-primary">次へ</button>
+    <button type="button" id="submitBtn" class="btn btn-primary">回答を確定して次へ</button>
 </form>
 
 <script>
-document.querySelector('#choiceForm').addEventListener('submit', function(e) {
-    const amounts = {{ amounts|json }};
+// デバッグ用（必要なら有効に）
+// console.log("amounts raw:", {{ amounts|json }});
+
+document.getElementById('submitBtn').addEventListener('click', function() {
+    // JSON経由で安全に受け取る（escapeを気にするなら |escapejs を検討）
+    const amounts = JSON.parse('{{ amounts|json }}');
     const choices = [];
     let missing = false;
 
     for (let i = 1; i <= amounts.length; i++) {
-        const val = document.querySelector(`input[name="choice_${i}"]:checked`);
-        if (!val) {
+        const selector = `input[name="choice_${i}"]:checked`;
+        const el = document.querySelector(selector);
+        if (!el) {
             missing = true;
+            break;
         }
-        choices.push(val ? val.value : null);
+        choices.push(el.value);
     }
 
     if (missing) {
+        // ユーザー向けメッセージ（日本語）
         alert('すべての選択肢を選んでから次へ進んでください。');
-        e.preventDefault();
         return;
     }
 
+    // hidden に JSON を入れて送信
     document.getElementById('choice_data').value = JSON.stringify({ amounts, choices });
+
+    // サブミット
+    document.getElementById('choiceForm').submit();
 });
 </script>
 

@@ -33,7 +33,8 @@ class DelayPage(Page):
         current_delay = self.player.delay
         eft = next((e for e in eft_data if e.get('delay') == current_delay), {})
 
-        if self.player.order_type == 'asc':
+        # 金額提示順（ここで amounts を作る）
+        if getattr(self.player, "order_type", None) == 'asc':
             amounts = C.AMOUNTS
         else:
             amounts = list(reversed(C.AMOUNTS))
@@ -45,15 +46,17 @@ class DelayPage(Page):
             delay=current_delay,
             delayed_reward=C.DELAYED_REWARD,
             delayed_reward_str=f"{C.DELAYED_REWARD:,}",
-            amount_pairs=list(zip(amounts, [f"{a:,}" for a in amounts])),
+            amount_pairs=amount_pairs,
+            amounts=amounts,   # ← 重要：JSで使うため必ず渡す
             eft_goal=eft.get('goal'),
             eft_5w1h=eft.get('text_5w1h'),
             eft_emotion=eft.get('text_emotion'),
-             amounts=amounts,
         )
 
     def before_next_page(self, timeout_happened=None):
+        # choice_data は JSON 文字列で渡されるので解析して保存
         self.player.set_indifference_point()
+
         if self.round_number == C.NUM_ROUNDS:
             self.player.set_auc()
 
@@ -78,7 +81,7 @@ class EndPage(Page):
         self.player.finish_time = datetime.now(timezone.utc).isoformat()
 
 
-# 🚨 ここが重要！！！！！！！！！！
+# page_sequence はシンプルに。DelayPage は各ラウンドで一度ずつ表示されます。
 page_sequence = [
     Intro,
     DelayPage,
