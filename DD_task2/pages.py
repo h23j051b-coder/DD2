@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 
 class Intro(Page):
     template_name = 'DD_task2/Intro.html'
-
     def is_displayed(self):
         return self.round_number == 1
 
@@ -47,7 +46,6 @@ class DelayPage(Page):
             delayed_reward=C.DELAYED_REWARD,
             delayed_reward_str=f"{C.DELAYED_REWARD:,}",
             amount_pairs=amount_pairs,
-            amounts=amounts,
             eft_goal=eft.get('goal'),
             eft_5w1h=eft.get('text_5w1h'),
             eft_emotion=eft.get('text_emotion'),
@@ -55,14 +53,12 @@ class DelayPage(Page):
 
     def before_next_page(self, timeout_happened=None):
         self.player.set_indifference_point()
-
         if self.round_number == C.NUM_ROUNDS:
             self.player.set_auc()
 
 
 class BreakPage(Page):
     template_name = 'DD_task2/Break.html'
-
     def is_displayed(self):
         return self.round_number == 4
 
@@ -78,18 +74,13 @@ class EndPage(Page):
         )
 
     def before_next_page(self, timeout_happened=None):
-        self.player.set_scores()
         self.player.finish_time = datetime.now(timezone.utc).isoformat()
 
 
-# 🔥 DelayPageのページを自動生成 + 途中で BreakPage 挿入
-page_sequence = [Intro]
-
-for i in range(C.NUM_ROUNDS):
-    page_sequence.append(DelayPage)
-
-    # ★ 4ページ目が終わったら休憩ページを表示
-    if i == 3:
-        page_sequence.append(BreakPage)
-
-page_sequence.append(EndPage)
+# 🚨 ここが重要！！！！！！！！！！
+page_sequence = [
+    Intro,
+    DelayPage,
+    BreakPage,
+    EndPage,
+]
