@@ -27,6 +27,12 @@
     {% endif %}
 </p>
 
+<!-- ★★ 教示①：遅延の意味に関する説明を追加 ★★ -->
+<p style="color:#444; margin-top:12px; margin-bottom:16px;">
+    ※ここでの目標は「〇〇以内に達成する」ものではなく、<br>
+    <b>「今から約〇〇後に達成する」ことを想定しています。</b>
+</p>
+
 <hr>
 
 <form method="post">
@@ -50,9 +56,15 @@
         <p><em>現在、この遅延に対する候補が設定されていません。</em></p>
       {% endif %}
   </div>
-{% endfor %}
+  {% endfor %}
 
-{{ next_button }} 
+  <!-- ★★ 教示②：回答確定に関する警告を追加 ★★ -->
+  <p style="margin-top: 24px; font-weight: bold; color:#b22222;">
+      「次へ」を押すと回答の変更はできません。<br>
+      <b>内容を確認し、確定する場合のみ「次へ」を押してください。</b>
+  </p>
+
+  {{ next_button }} 
 </form>
 
 <style>
