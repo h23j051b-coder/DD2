@@ -1,13 +1,17 @@
 from os import environ
 import os
 
+# --- Redis を使うための設定（追加） ---
+REDIS_URL = environ.get("REDIS_URL")
+
+
 SESSION_CONFIGS = [
     dict(
         name='day1',
         display_name='【Day1】質問紙 + 課題１，２',
         num_demo_participants=1,
         app_sequence=['questionnaire', 'EFT'],
-        participant_label_dir='C:/path/to/save', 
+        participant_label_dir='C:/path/to/save',
     ),
     dict(
         name='day2',
@@ -42,7 +46,7 @@ ADMIN_PASSWORD = environ.get('OTREE_ADMIN_PASSWORD')
 
 DEMO_PAGE_INTRO_HTML = """ """
 
-SECRET_KEY = 'YOUR_SECRET_KEY_HERE'
+SECRET_KEY = environ.get('OTREE_SECRET_KEY')
 
 ROOMS = [
     dict(
@@ -57,6 +61,6 @@ ROOMS = [
     ),
 ]
 
+# oTree を本番モードに
 os.environ['OTREE_PRODUCTION'] = '1'
 DEBUG = False
-
