@@ -1,5 +1,12 @@
 from os import environ
 import os
+import dj_database_url
+
+DATABASES = {
+    'default': dj_database_url.config(
+        default=environ.get('DATABASE_URL')
+    )
+}
 
 # --- Redis を使うための設定（追加） ---
 REDIS_URL = environ.get("REDIS_URL")
